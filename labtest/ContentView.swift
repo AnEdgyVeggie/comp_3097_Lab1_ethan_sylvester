@@ -8,24 +8,30 @@
 import SwiftUI
 
 struct GameView: View {
-    @State private var questionNumber: Int = 0;
+    @State private var questionNumber: Int = Int.random(in: 0...1000);
     @State private var image: Image? = nil
     @State private var roundNumber: Int = 1
     @State private var correctAnswers: Int = 0
+    @State private var roundTimer = 5
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
     
     var body: some View {
         VStack {
             Grid {
                 GridRow {
-                    Text("Number:   " + String(questionNumber))
+                    Text("\(String(roundTimer))s.")
+                }.font(.system(size: 32))
+                
+                GridRow {
+                    Text(String(questionNumber))
                         .padding()
-                        .font(.system(size: 32))
+                        .font(.system(size: 64))
                     
                 }
                 GridRow {
                     Button("Prime") {
                         checkAnswer(true)
-                        generateNewNumber()
                     }
                     .padding()
                     .font(.system(size: 32))
@@ -33,45 +39,78 @@ struct GameView: View {
                 GridRow {
                     Button("Not Prime") {
                         checkAnswer(false)
-                        generateNewNumber()
                     }
                     .padding()
                     .font(.system(size: 32))
                 }
                 GridRow {
-                    image?.resizable().frame(width: 100, height: 100)
-                }
-                GridRow {
-                    if (roundNumber == 10) {
+                    image?.resizable()
+                }.padding()
+                    .frame(width: 100, height: 100)
+              
+                if (roundNumber == 10) {
+                    GridRow {
                         Text("You got \(correctAnswers) correct!")
+
+                    }.padding()
+                        .font(.system(size: 32))
+                    GridRow {
+                        Button("Play again!") {
+                            roundNumber = 1
+                            correctAnswers = 0
+                            image = nil
+                            roundTimer = 5
+                        }.padding()
+                            .font(.system(size: 32))
+                           
                     }
                 }
             }
+        }.onReceive(timer) {
+            time in
+            if (roundNumber == 10) {
+                return
+            }
+            if roundTimer > 0 {
+                roundTimer -= 1
+            } else {
+                outOfTime()
+                roundTimer = 5
+            }
         }
-        .padding()
+
     }
     
+    func outOfTime() {
+        image = Image("x")
+        roundNumber += 1
+        questionNumber  = Int.random(in: 0...1000)
+    }
+    
+    
+    
     func checkAnswer(_ isPrime: Bool) {
-
-        print(roundNumber)
-        
+        if (roundNumber == 10) {
+            return
+        }
         // cast the number in question to an int
         let questionInt = questionNumber
         
         // check the first and last index of the prime numbers collection for matching, because they
         // will take the longest to find in a binary search
         if (questionInt == primeNumbers[0] || questionInt == primeNumbers[primeNumbers.count - 1]) {
-            
+
             image = Image("check")
             correctAnswers += 1
             roundNumber += 1
+            questionNumber  = Int.random(in: 0...1000)
             return
             
         }
         // if numbers arent the first or last index, binary search the collection, and append whether or not
         // it was found to the answers collection
-        
         let numberIsPrime = binarySearch(questionInt)
+    
         
         if (isPrime == numberIsPrime) {
             image = Image("check")
@@ -79,19 +118,23 @@ struct GameView: View {
         } else {
             image = Image("x")
         }
-        
+
+        questionNumber = Int.random(in: 0...1000)
+
         roundNumber += 1
+        
     }
     
     func binarySearch(_ number: Int) -> Bool {
         var min = 0, max = primeNumbers.count - 1
-        print()
+
         
         while (min < max) {
-            let mid = (min + max / 2)
-            
+
+            let mid = (min + max) / 2
             if (primeNumbers[mid] == number)
             {
+
                 return true
             }
             if (primeNumbers[mid] < number) {
@@ -100,18 +143,12 @@ struct GameView: View {
                 max = mid - 1
             }
         }
+
         return false
     }
     
 
-    func generateNewNumber() {
-        do {
-            questionNumber = Int.random(in: 0...1000)
-             
-        } catch {
-            print("some fucking error happened and honestly who the fuck knows")
-        }
-    
+
 }
 
 
