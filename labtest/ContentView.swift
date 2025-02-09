@@ -7,51 +7,89 @@
 
 import SwiftUI
 
-struct GameScreen: View {
-    @State private var questionNumber: String = "2";
+struct GameView: View {
+    @State private var questionNumber: Int = 0;
+    @State private var image: Image? = nil
+    @State private var roundNumber: Int = 1
+    @State private var correctAnswers: Int = 0
     
     var body: some View {
         VStack {
             Grid {
                 GridRow {
-                    Text(questionNumber)
+                    Text("Number:   " + String(questionNumber))
                         .padding()
+                        .font(.system(size: 32))
+                    
                 }
                 GridRow {
-                    Button("Prime", action: checkAnswer )
-                        .padding()
+                    Button("Prime") {
+                        checkAnswer(true)
+                        generateNewNumber()
+                    }
+                    .padding()
+                    .font(.system(size: 32))
                 }
                 GridRow {
-                    Button("Not Prime",  action: checkAnswer)
-                        .padding()
+                    Button("Not Prime") {
+                        checkAnswer(false)
+                        generateNewNumber()
+                    }
+                    .padding()
+                    .font(.system(size: 32))
+                }
+                GridRow {
+                    image?.resizable().frame(width: 100, height: 100)
+                }
+                GridRow {
+                    if (roundNumber == 10) {
+                        Text("You got \(correctAnswers) correct!")
+                    }
                 }
             }
         }
         .padding()
     }
     
-    func checkAnswer() {
-        // cast the number in question to an int
-        let questionInt = Int(questionNumber)!
+    func checkAnswer(_ isPrime: Bool) {
 
+        print(roundNumber)
+        
+        // cast the number in question to an int
+        let questionInt = questionNumber
+        
         // check the first and last index of the prime numbers collection for matching, because they
         // will take the longest to find in a binary search
         if (questionInt == primeNumbers[0] || questionInt == primeNumbers[primeNumbers.count - 1]) {
-            correctAnswers.append(true)
+            
+            image = Image("check")
+            correctAnswers += 1
+            roundNumber += 1
             return
+            
         }
         // if numbers arent the first or last index, binary search the collection, and append whether or not
         // it was found to the answers collection
-        correctAnswers.append(binarySearch(questionInt))
+        
+        let numberIsPrime = binarySearch(questionInt)
+        
+        if (isPrime == numberIsPrime) {
+            image = Image("check")
+            correctAnswers += 1
+        } else {
+            image = Image("x")
+        }
+        
+        roundNumber += 1
     }
     
     func binarySearch(_ number: Int) -> Bool {
         var min = 0, max = primeNumbers.count - 1
         print()
-
+        
         while (min < max) {
             let mid = (min + max / 2)
-
+            
             if (primeNumbers[mid] == number)
             {
                 return true
@@ -64,7 +102,19 @@ struct GameScreen: View {
         }
         return false
     }
+    
+
+    func generateNewNumber() {
+        do {
+            questionNumber = Int.random(in: 0...1000)
+             
+        } catch {
+            print("some fucking error happened and honestly who the fuck knows")
+        }
+    
 }
+
+
 
 let primeNumbers = [
     2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73,
@@ -80,10 +130,7 @@ let primeNumbers = [
     929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997
 ]
 
-var correctAnswers: Array<Bool> = []
-
-
 
 #Preview {
-    GameScreen()
+    GameView()
 }
