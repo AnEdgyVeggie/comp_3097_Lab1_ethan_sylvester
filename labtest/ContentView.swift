@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-struct ContentView: View {
-    @State private var questionNumber: String = "0";
-    private var roundNumber: Int = 0
+struct GameScreen: View {
+    @State private var questionNumber: String = "2";
     
     var body: some View {
         VStack {
@@ -32,19 +31,40 @@ struct ContentView: View {
     }
     
     func checkAnswer() {
-        
+        // cast the number in question to an int
+        let questionInt = Int(questionNumber)!
+
+        // check the first and last index of the prime numbers collection for matching, because they
+        // will take the longest to find in a binary search
+        if (questionInt == primeNumbers[0] || questionInt == primeNumbers[primeNumbers.count - 1]) {
+            correctAnswers.append(true)
+            return
+        }
+        // if numbers arent the first or last index, binary search the collection, and append whether or not
+        // it was found to the answers collection
+        correctAnswers.append(binarySearch(questionInt))
     }
     
-    
-    
-    
+    func binarySearch(_ number: Int) -> Bool {
+        var min = 0, max = primeNumbers.count - 1
+        print()
+
+        while (min < max) {
+            let mid = (min + max / 2)
+
+            if (primeNumbers[mid] == number)
+            {
+                return true
+            }
+            if (primeNumbers[mid] < number) {
+                min = mid + 1
+            } else {
+                max = mid - 1
+            }
+        }
+        return false
+    }
 }
-
-#Preview {
-    ContentView()
-}
-
-
 
 let primeNumbers = [
     2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73,
@@ -62,3 +82,8 @@ let primeNumbers = [
 
 var correctAnswers: Array<Bool> = []
 
+
+
+#Preview {
+    GameScreen()
+}
